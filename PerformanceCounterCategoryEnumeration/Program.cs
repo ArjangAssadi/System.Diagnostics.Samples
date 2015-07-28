@@ -1,44 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Contracts.Models;
+using Domain.Models;
+using Infrastructure.ModelConvertors;
 
 namespace PerformanceCounterCategoryEnumeration
 {
     class Program
     {
+        static string delimeter = "|";
+        static string delimiterreplacement = "-";
+
         static void Main(string[] args)
         {
-            PerformanceCounterCategory[] performanceCounterCategories = PerformanceCounterCategory.GetCategories();
-            List<string> categories = new List<string>();
+            IEnumerable<PerformanceCounterCategory> pmcList = PerformanceCounterCategory.GetCategories().AsEnumerable();
 
-            categories.Add("Name|Help|Type|MachineName|InstanceNames");
-            foreach (var performanceCounterCategory in performanceCounterCategories)
-            {
-                string[] instanceNames = performanceCounterCategory.GetInstanceNames();
-                string instanceNamesCSV = "";
+            PCCM1Convertor pccm1Convertor = new PCCM1Convertor();
+            IEnumerable<IPCCM1> categoryList = pccm1Convertor.Convert(pmcList);
 
-                if (instanceNames.Length > 0)
-                {
-                    instanceNamesCSV = instanceNames.Aggregate((m, n) => m + "," + n);
-                }
+            ITextTable tt = pccm1Convertor.Convert(categoryList);
 
+            TextTableConvertor ttc = new TextTableConvertor();
 
-                categories.Add(
-                    String.Format("{0}|{1}|{2}|{3}|{4}",
-                    performanceCounterCategory.CategoryName.Replace("|", "-"),
-                    performanceCounterCategory.CategoryHelp.Replace("|", "-"),
-                    performanceCounterCategory.CategoryType.GetEnumDescription().Replace("|", "-"),
-                    performanceCounterCategory.MachineName.Replace("|", "-"),
-                    instanceNamesCSV.Replace("|", "-"))
-                    );
-
-
-            }
-
-            System.IO.File.WriteAllLines(@"D:\PerformanceCounterCategories.txt", categories.ToArray());
+            File.WriteAllLines(@"D:\PerformanceCounterCategories.txt", ttc.Delimeted(tt, delimeter, delimiterreplacement).ToArray());
         }
     }
 }
+
+

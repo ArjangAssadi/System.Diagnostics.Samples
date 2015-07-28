@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 
-namespace PerformanceCounterCategoryEnumeration
+namespace Infrastructure.GenericConvertors
 {
-    public static class Extensions
+    public class StringConvertor
     {
-        public static string GetEnumDescription(this Enum value)
+        public string EnumDescription(Enum value)
         {
             // Get the Description attribute value for the enum value
             FieldInfo fi = value.GetType().GetField(value.ToString());
@@ -20,5 +22,14 @@ namespace PerformanceCounterCategoryEnumeration
                 return value.ToString();
             }
         }
+
+        public string Delimeted(IEnumerable<string> values , string delimeter)
+        {
+            if (values == null) return String.Empty;
+            if (values.Count() == 0 ) return String.Empty;
+            
+            return values.Aggregate((m, n) => m + delimeter + n);
+        }
+
     }
 }
